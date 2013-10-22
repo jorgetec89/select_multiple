@@ -5,7 +5,7 @@ mysql_set_charset('utf8',$con);
 if (!$con)  {
    die('Could not connect: ' . mysql_error());
 }
-mysql_select_db("imed", $con);
+mysql_select_db("imed2", $con);
 
      $did=$_POST['did']; 
      $clave=$_POST['dclave'];   
@@ -15,7 +15,8 @@ mysql_select_db("imed", $con);
      $unidad=$_POST['dunidad'];
      $via=$_POST['dvia'];
      $contenido=$_POST['dcontenido']; 
-     $excipiente=$_POST['dexcipiente'];
+//$excipiente = $_POST['e']; 
+   // $excipiente=$_POST['dexcipiente'];
      $cantidad=$_POST['dcantidad'];           
      $ingrediente=$_POST['dingrediente'];    
      $dosisingrediente=$_POST['ddosisingrediente']; 
@@ -23,7 +24,10 @@ mysql_select_db("imed", $con);
      $equivalente=$_POST['dequivalente']; 
      $stock_max = 200;
      $stock_min = 50;
+     $excipiente = ''; 
 
+
+// echo "valor:". $e;
       
 $consulta_drug ="SELECT * FROM drugs WHERE drug_id = '$did'";
 $query = mysql_query($consulta_drug);
@@ -31,18 +35,42 @@ $ejecutar = mysql_fetch_array($consulta_drug);
 $drug_id = $ejecutar['drug_id'];
 $conteo = mysql_num_rows($consulta_drug);
 
-echo $conteo;
 
-
-for ($i=0;$i<count($excipiente);$i++) 
+$unidad_result = mysql_query("SELECT option_id,title FROM list_options WHERE list_id = 'drug_form'");
+$recorrido = mysql_fetch_array($unidad_result);
+$option_id = $recorrido['option_id'];
+//$excipiente = $recorrido['title'];
+//echo "excipiente " . $excipiente. "<br>";
+/*for ($i=0;$i<count($excipiente);$i++) 
     
          { 
 
          echo "<br> Excipiente " . $i . ": " . $excipiente[$i]. "<br>"; 
          
          } 
+*/
 
 
+for($i = 0; $i < count($_POST['dexcipiente']); $i++) 
+
+{ 
+
+      $excipiente .= $_POST['dexcipiente'][$i]; 
+      $sqldos="INSERT INTO tdrug_excipiente (drug_id,idtexcipiente,cantidad_exc)
+                         VALUES ('$did','$excipiente[$i]','$cantidad')";
+      mysql_query($sqldos);                         
+
+
+}  
+
+
+echo "1 ". $excipiente[$i]. "<br>";
+
+/*$excipiente = implode("<br>",$_POST['dexcipiente']);
+
+echo "<br>". $excipiente . "<br>";
+
+*/
 // SELECCIONA SI ES UN MEDICAMENTO NUEVO UN INGREDIENTE NUEVO EN UN MEDICAMENTO EXISTENTE 
 
 $drugid_result2=mysql_query("SELECT MAX( drug_id ) AS id FROM drugs");
@@ -56,13 +84,13 @@ while($row=mysql_fetch_array($drugid_result2)){
                 $sql="INSERT INTO drugs (drug_id,ndc_number,name,size,unit,route,idtpresentacion)
                 VALUES ('$did','$clave','$nombre','$dosisenvase','$unidad','$via','$presentacion')";
           
-                $sqldos="INSERT INTO tdrug_excipiente (drug_id,idtexcipiente,cantidad_exc)
-                         VALUES ('$did','$excipiente','$cantidad')";
+      /*          $sqldos="INSERT INTO tdrug_excipiente (drug_id,idtexcipiente,cantidad_exc)
+                         VALUES ('$did','$excipiente','$cantidad')"; */
 
                 $sqltres="INSERT INTO tdrug_ingrediente (drug_id,idtingrediente,size_ing,unit_ing,equivalente)
-                        VALUES ('$did','$ingrediente','$dosisingrediente','$unidadi','$equivalente')";
-                        
-
+                         VALUES ('$did','$ingrediente','$dosisingrediente','$unidadi','$equivalente')";
+                 
+  
  $consulta_clinica = mysql_query("SELECT * FROM facility");
  $consu = mysql_num_rows($consulta_clinica);
 
@@ -84,18 +112,18 @@ while($row=mysql_fetch_array($drugid_result2)){
                 }
                    echo "1 record added, DRUGS ";
 
-                if (!mysql_query($sqldos,$con)) {
+              /*  if (!mysql_query($sqldos,$con)) {
                    die('Error: ' . mysql_error());
                 }
-                   echo "1 record added,DRUG_EXCIPIENTE ";
+                   echo "1 record added,TDRUG_EXCIPIENTE "; */
 
                 if (!mysql_query($sqltres,$con)){
                    die('Error: ' . mysql_error());
                 }
-                   echo "1 record added, DRUG_INGREDIENT";
+                   echo "1 record added, TDRUG_INGREDIENTE";
                   
 
-     }
+  }
 
      //AGREGAR INGREDIENTE A MEDICAMENTO EXISTENTE
 
